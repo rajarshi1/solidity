@@ -476,7 +476,7 @@ bool IntegerType::isExplicitlyConvertibleTo(Type const& _convertTo) const
 	return _convertTo.category() == category() ||
 		_convertTo.category() == Category::Contract ||
 		_convertTo.category() == Category::Enum ||
-		_convertTo.category() == Category::FixedBytes ||
+		(_convertTo.category() == Category::FixedBytes && storageBytes() == _convertTo.storageBytes()) ||
 		_convertTo.category() == Category::FixedPoint;
 }
 
@@ -884,7 +884,10 @@ bool RationalNumberType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 bool RationalNumberType::isExplicitlyConvertibleTo(Type const& _convertTo) const
 {
 	TypePointer mobType = mobileType();
-	return mobType && mobType->isExplicitlyConvertibleTo(_convertTo);
+	return
+		(mobType && mobType->isExplicitlyConvertibleTo(_convertTo)) ||
+		(!isFractional() && _convertTo.category() == Category::FixedBytes)
+	;
 }
 
 TypePointer RationalNumberType::unaryOperatorResult(Token::Value _operator) const
@@ -1281,7 +1284,7 @@ bool FixedBytesType::isImplicitlyConvertibleTo(Type const& _convertTo) const
 
 bool FixedBytesType::isExplicitlyConvertibleTo(Type const& _convertTo) const
 {
-	return _convertTo.category() == Category::Integer ||
+	return (_convertTo.category() == Category::Integer && storageBytes() == _convertTo.storageBytes()) ||
 		_convertTo.category() == Category::FixedPoint ||
 		_convertTo.category() == category();
 }
